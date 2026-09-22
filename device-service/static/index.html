@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeFleet Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1>EdgeFleet</h1>
+            <p>Cloud-Native Edge Device Management</p>
+        </div>
+
+        <span class="system-status">EdgeFleet Dashboard</span>
+    </header>
+
+    <main>
+        <section class="toolbar">
+            <div>
+                <h2>Registered Devices</h2>
+                <p id="device-count">Loading devices...</p>
+            </div>
+
+            <button id="show-form-button">+ Register Device</button>
+        </section>
+
+        <section id="register-section" class="panel hidden">
+            <h2>Register Device</h2>
+
+            <form id="device-form">
+                <input id="name" aria-label="Device name"
+                       placeholder="Device name" maxlength="100" required>
+                <input id="type" aria-label="Device type"
+                       placeholder="Device type" maxlength="50" required>
+                <input id="location" aria-label="Location"
+                       placeholder="Location" maxlength="100" required>
+                <input id="software-version" aria-label="Software version"
+                       placeholder="Software version" maxlength="50" required>
+                <input id="ip-address" aria-label="IP address"
+                       placeholder="IP address" maxlength="45" required>
+
+                <div class="form-actions">
+                    <button type="submit">Register</button>
+                    <button type="button" id="cancel-button" class="secondary">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="message" role="status" aria-live="polite"></section>
+
+        <section id="device-list" class="device-grid"></section>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
