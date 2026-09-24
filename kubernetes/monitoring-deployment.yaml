@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: monitoring-service
-          image: vaibhavboppana/edgefleet-monitoring-service:1.1
+          image: vaibhavboppana/edgefleet-monitoring-service:1.2
           ports:
             - containerPort: 8001
           env:

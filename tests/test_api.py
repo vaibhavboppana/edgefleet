@@ -1,13 +1,28 @@
+import argparse
+import importlib
 import os
+from pathlib import Path
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 from uuid import uuid4
 
-os.environ["DATABASE_URL"] = "sqlite:////tmp/edgefleet-review.db"
-sys.path.insert(0, "/app")
+import httpx
 from fastapi.testclient import TestClient
-import main
+
+
+parser = argparse.ArgumentParser(description="Run API tests for one service.")
+parser.add_argument("service", choices=["device", "monitoring"])
+service = parser.parse_args().service
+test_database = tempfile.TemporaryDirectory(prefix="edgefleet-tests-")
+database_path = Path(test_database.name) / "test.db"
+
+# Configure an isolated database before importing the service's startup code.
+os.environ["DATABASE_URL"] = f"sqlite:///{database_path.as_posix()}"
+service_path = Path(__file__).resolve().parents[1] / f"{service}-service"
+sys.path.insert(0, str(service_path))
+main = importlib.import_module("main")
 
 client = TestClient(main.app)
 
@@ -17,11 +32,11 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(client.get("/health").status_code, 200)
 
     def test_workflow(self):
-        if hasattr(main, "DeviceCreate"):
+        if service == "device":
             self.assertEqual(client.get("/").status_code, 200)
             self.assertEqual(client.get("/static/app.js").status_code, 200)
             payload = dict(
-                name="Review device",
+                name="Test device",
                 type="sensor",
                 location="lab",
                 software_version="1.0",
@@ -40,8 +55,6 @@ class ServiceTests(unittest.TestCase):
                 "Updated",
             )
             self.assertEqual(client.put(url, json={}).status_code, 200)
-            import httpx
-
             for response, expected in [
                 (httpx.Response(404), 200),
                 (httpx.Response(500), 502),
@@ -92,4 +105,10 @@ class ServiceTests(unittest.TestCase):
             )
 
 
-unittest.main()
+if __name__ == "__main__":
+    try:
+        unittest.main(argv=[sys.argv[0]])
+    finally:
+        client.close()
+        main.engine.dispose()
+        test_database.cleanup()
